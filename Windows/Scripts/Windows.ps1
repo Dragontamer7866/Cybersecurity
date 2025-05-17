@@ -39,6 +39,7 @@ New-NetFirewallRule -DisplayName "Block HTTP" -Direction Inbound -Protocol TCP  
 New-NetFirewallRule -DisplayName "Block SNMP" -Direction Inbound -Protocol TCP  -LocalPort 161 -Action Block
 New-NetFirewallRule -DisplayName "Block SNMP" -Direction Inbound -Protocol TCP  -LocalPort 162 -Action Block
 New-NetFirewallRule -DisplayName "Block RDP" -Direction Inbound -Protocol TCP -LocalPort 3389 -Action Block
+New-NetFirewallRule -DisplayName "Block WebLogic" -Direction Inbound -Protocol TCP -LocalPort 4444 -Action Block
 
 # Services
 $Service0 = Get-Service -Name "TermService"
