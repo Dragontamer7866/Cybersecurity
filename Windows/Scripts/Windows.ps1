@@ -1,5 +1,6 @@
 # Setup
 @echo off
+#Requires -RunAsAdministrator
 
 # Execution Poilcy Setup
 Get-ExecutionPolicy
@@ -13,15 +14,34 @@ if (Restricted -eq $Execution)
 
 # Setup Continued
 $CurrentUser = Whoami
-cd ../..
-cd "C:\Users\$CurrentUser\Desktop"
-mkdir "ScriptLogs"
-Start-Transcript -Path "C:\Users\$CurrentUser\Desktop\ScriptLogs"
+New-Item -ItemType Directory -Path "C:\Users\$CurrentUser\Desktop\ScriptLogs"
+Start-Transcript Out-File "C:\Users\$CurrentUser\Desktop\ScriptLogs\Logs.txt"
 
 # Users
 Whoami
 Get-LocalUser
-Get-LocalUser | ConvertTo-Html -Title "Users List" -body (Get-Date) | Out-File C:\Users\$CurrentUser\Desktop\ScriptLogs\userList.html
+Get-LocalUser | ConvertTo-Html -Title "Local Users" -body (Get-Date) | Out-File C:\Users\$CurrentUser\Desktop\ScriptLogs\userList.html
+Get-LocalUser Guest | Disable-LocalUser
+Write-Host "Disabled Guest User" -ForegroundColor Green
+Net User
+
+do {
+$Delete = Read-host -Prompt "Should a user be deleted? Y/N"
+    if ($Delete -eq "Y") {
+        $DelUser = Read-host -Prompt "What user?"
+            net user $DelUser /DELETE | out-null }
+    else {break}
+    net user
+    } while ($Delete -eq "Y")
+
+do {
+$Add = Read-host -Prompt "Should a user be added? Y/N"
+    if ($Add -eq "Y") {
+        $AddUser = Read-host -Prompt "Username?"
+            net user $AddUser /Add | out-null }
+    else {break}
+    net user
+    } while ($Add -eq "Y")
 
 # wp status
 Get-MpComputerStatus
@@ -31,15 +51,31 @@ Update-MpSignature
 # Firewall
 Get-NetFirewallProfile
 Set-NetFirewallProfile -Enabled True -Profile Domain, Private, Public 
-New-NetFirewallRule -DisplayName "Block FTP" -Direction Inbound -Protocol TCP  -LocalPort 21 -Action Block
-New-NetFirewallRule -DisplayName "Block SSH" -Direction Inbound -Protocol TCP  -LocalPort 22 -Action Block
-New-NetFirewallRule -DisplayName "Block Telnet" -Direction Inbound -Protocol TCP  -LocalPort 23 -Action Block
-New-NetFirewallRule -DisplayName "Block SMTP" -Direction Inbound -Protocol TCP  -LocalPort 25 -Action Block
-New-NetFirewallRule -DisplayName "Block HTTP" -Direction Inbound -Protocol TCP  -LocalPort 80 -Action Block
-New-NetFirewallRule -DisplayName "Block SNMP" -Direction Inbound -Protocol TCP  -LocalPort 161 -Action Block
-New-NetFirewallRule -DisplayName "Block SNMP" -Direction Inbound -Protocol TCP  -LocalPort 162 -Action Block
-New-NetFirewallRule -DisplayName "Block RDP" -Direction Inbound -Protocol TCP -LocalPort 3389 -Action Block
-New-NetFirewallRule -DisplayName "Block WebLogic" -Direction Inbound -Protocol TCP -LocalPort 4444 -Action Block
+
+# TCP Ports Block
+New-NetFirewallRule -DisplayName "TCP | Block FTP" -Direction Inbound -Protocol TCP  -LocalPort 21 -Action Block
+New-NetFirewallRule -DisplayName "TCP | Block SSH" -Direction Inbound -Protocol TCP  -LocalPort 22 -Action Block
+New-NetFirewallRule -DisplayName "TCP | Block Telnet" -Direction Inbound -Protocol TCP  -LocalPort 23 -Action Block
+New-NetFirewallRule -DisplayName "TCP | Block SMTP" -Direction Inbound -Protocol TCP  -LocalPort 25 -Action Block
+New-NetFirewallRule -DisplayName "TCP | Block HTTP" -Direction Inbound -Protocol TCP  -LocalPort 80 -Action Block
+New-NetFirewallRule -DisplayName "TCP | Block SNMP1" -Direction Inbound -Protocol TCP  -LocalPort 161 -Action Block
+New-NetFirewallRule -DisplayName "TCP | Block SNMP2" -Direction Inbound -Protocol TCP  -LocalPort 162 -Action Block
+New-NetFirewallRule -DisplayName "TCP | Block RDP" -Direction Inbound -Protocol TCP -LocalPort 3389 -Action Block
+New-NetFirewallRule -DisplayName "TCP | Block WebLogic" -Direction Inbound -Protocol TCP -LocalPort 4444 -Action Block
+New-NetFirewallRule -Displayname "TCP | Block HTTP-ALT1" -Direction Inbound -Protocol TCP -LocalPort 8080 -Action Block
+New-NetFirewallRule -Displayname "TCP | Block RANDAN-HTTP" -Direction Inbound -Protocol TCP -LocalPort 8088 -Action Block
+New-NetFirewallRule -Displayname "TCP | Block HTTP-ALT2" -Direction Inbound -Protocol TCP -LocalPort 8888 -Action Block
+
+Read-Host -Prompt "Blocked TCP Ports 21,22,23.25.80,161,162,3389,4444,8080,8088,8888. Press enter to continue."
+
+# UDP Ports Block
+New-NetFirewallRule -DisplayName "UDP | Block SNMP" -Direction Inbound -Protocol UDP -LocalPort 161 -Action Block
+New-NetFirewallRule -DisplayName "UDP | Block SNMP" -Direction Inbound -Protocol UDP -LocalPort 162 -Action Block
+New-NetFirewallRule -DisplayName "UDP | Block LDAP1" -Direction Inbound -Protocol UDP -LocalPort 389 -Action Block
+New-NetFirewallRule -DisplayName "UDP | Block LDAP2" -Direction Inbound -Protocol UDP -LocalPort 636 -Action Block
+New-NetFirewallRule -DisplayName "UDP | Block RDP" -Direction Inbound -Protocol UDP -LocalPort 3389 -Action Block
+
+Read-Host -Prompt "Blocked UDP Ports 161, 162, 389, 636, 3389. Press enter to continue."
 
 # Services
 $Service0 = Get-Service -Name "TermService"
@@ -154,6 +190,7 @@ Write-Host "Xbox Live Networking Service Stopped and Disabled" -ForegroundColor 
 
 Read-Host "Services Finished! Press enter to continue." -ForegroundColor Green
 
+
 # Local Security Policy
 net accounts /maxpwage:31
 net accounts /minpwage:21
@@ -177,14 +214,14 @@ Get-ChildItem | ConvertTo-HTML -Title "Suspect Files" -body (Get-Date) | Put-Fil
 
 Read-Host -Prompt "HTML file created in ScriptLogs Folder. Press enter to continue"
 
-# Microsoft Updates
-Write-Host "Starting Updates."
-control /name Microsoft.WindowsUpdate
-Read-Host -Prompt "Press enter to continue." -ForegroundColor Yellow
-
-# Other Updates
+# Application Updates
 $Path = C:\Users\$CurrentUser\Downloads
 $Updater = "chrome_installer.exe";
 Invoke-WebRequest "http://dl.google.com/chrome/install/latest/chrome_installer.exe" -OutFile $Path\$Updater;
 Start-Process -FilePath $Path\$Updater -Args "/silent /install" -Verb RunAs -Wait;
 Remove-Item $Path\$Updater
+
+# Microsoft Updates
+Write-Host "Starting Updates."
+control /name Microsoft.WindowsUpdate
+Read-Host -Prompt "Press enter to continue." -ForegroundColor Yellow
