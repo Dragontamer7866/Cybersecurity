@@ -188,7 +188,7 @@ Stop-Service -InputObject $Service21  -Force
 Set-Service XboxNetApiSvc -StartupType Disabled -Force
 Write-Host "Xbox Live Networking Service Stopped and Disabled" -ForegroundColor Green
 
-Read-Host "Services Finished! Press enter to continue." -ForegroundColor Green
+Read-Host -Prompt "Services Finished! Press enter to continue." -ForegroundColor Green
 
 
 # Local Security Policy
