@@ -3,9 +3,8 @@
 #Requires -RunAsAdministrator
 
 # Execution Poilcy Setup
-Get-ExecutionPolicy
 $Execution = Get-ExecutionPolicy
-if (Restricted -eq $Execution)
+if ($Execution -eq Restircted)
 {
     Write-Host "Warning: " -ForegroundColor Yellow -noNewLine
     Write-Host "Execution Policy is Restricted." -ForegroundColor Red
@@ -25,6 +24,8 @@ Get-LocalUser Guest | Disable-LocalUser
 Write-Host "Disabled Guest User" -ForegroundColor Green
 Net User
 
+# Add/Delete users
+# Taken from TheZestySquid
 do {
 $Delete = Read-host -Prompt "Should a user be deleted? Y/N"
     if ($Delete -eq "Y") {
@@ -78,6 +79,7 @@ New-NetFirewallRule -DisplayName "UDP | Block RDP" -Direction Inbound -Protocol 
 Read-Host -Prompt "Blocked UDP Ports 161, 162, 389, 636, 3389. Press enter to continue."
 
 # Services
+# From TheZestySquid
 $Service0 = Get-Service -Name "TermService"
 Stop-Service -InputObject $Service0 -Force
 Set-Service TermService -StartupType Disabled -Force
@@ -215,7 +217,7 @@ Get-ChildItem | ConvertTo-HTML -Title "Suspect Files" -body (Get-Date) | Put-Fil
 Read-Host -Prompt "HTML file created in ScriptLogs Folder. Press enter to continue"
 
 # Application Updates
-$Path = C:\Users\$CurrentUser\Downloads
+$Path = C:\Users\$CurrentUser\Desktop\ChromeUpdater
 $Updater = "chrome_installer.exe";
 Invoke-WebRequest "http://dl.google.com/chrome/install/latest/chrome_installer.exe" -OutFile $Path\$Updater;
 Start-Process -FilePath $Path\$Updater -Args "/silent /install" -Verb RunAs -Wait;
