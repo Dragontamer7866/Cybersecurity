@@ -82,25 +82,52 @@ New-NetFirewallRule -DisplayName "UDP | Block RDP" -Direction Inbound -Protocol 
 Read-Host -Prompt "Blocked UDP Ports 161, 162, 389, 636, 3389. Press enter to continue."
 
 # --- Services ---
-Write-Host "Stopping and disabling services..." -ForegroundColor Cyan
-$ServicesToDisable = @(
-"TermService", "RemoteRegistry", "RpcLocator", "SessionEnv", "SharedAccess",
-"SSDPSRV", "XblAuthManager", "upnphost", "DcpSvc", "DiagTrack",
-"SensrSvc", "dmwappushservice", "lfsvc", "RemoteAccess", "TrkWks",
-"WbioSrvc", "WMPNetworkSvc", "XblGameSave", "XboxNetApiSvc"
-)
+$servicesChoice = Read-Host -Prompt "Would you like to stop and disable unnecessary services? Y/N"
+if ($servicesChoice -eq "Y") {
+    Write-Host "Stopping and disabling services..." -ForegroundColor Cyan
+    $ServicesToDisable = @(
+    "TermService", "RemoteRegistry", "RpcLocator", "SessionEnv", "SharedAccess",
+    "SSDPSRV", "XblAuthManager", "upnphost", "DcpSvc", "DiagTrack",
+    "SensrSvc", "dmwappushservice", "lfsvc", "RemoteAccess", "TrkWks",
+    "WbioSrvc", "WMPNetworkSvc", "XblGameSave", "XboxNetApiSvc"
+    )
 
-foreach ($service in $ServicesToDisable) {
-try {
-Stop-Service -Name $service -Force -ErrorAction Stop
-Set-Service -Name $service -StartupType Disabled -Force -ErrorAction Stop
-Write-Host "Service '$service' stopped and disabled." -ForegroundColor Green
+    foreach ($service in $ServicesToDisable) {
+            try {
+            Stop-Service -Name $service -Force -ErrorAction Stop
+            Set-Service -Name $service -StartupType Disabled -Force -ErrorAction Stop
+            Write-Host "Service '$service' stopped and disabled." -ForegroundColor Green
+        } catch {
+            Write-Host "Warning: Could not stop or disable service '$service'. Error: $_" -ForegroundColor Yellow
+        }
+    }
+    Read-Host -Prompt "Services Finished! Press enter to continue." -ForegroundColor Green
+} else if ($servicesChoice -eq "y") {
+    Write-Host "Stopping and disabling services..." -ForegroundColor Cyan
+    $ServicesToDisable = @(
+    "TermService", "RemoteRegistry", "RpcLocator", "SessionEnv", "SharedAccess",
+    "SSDPSRV", "XblAuthManager", "upnphost", "DcpSvc", "DiagTrack",
+    "SensrSvc", "dmwappushservice", "lfsvc", "RemoteAccess", "TrkWks",
+    "WbioSrvc", "WMPNetworkSvc", "XblGameSave", "XboxNetApiSvc"
+    )
+
+    foreach ($service in $ServicesToDisable) {
+            try {
+            Stop-Service -Name $service -Force -ErrorAction Stop
+            Set-Service -Name $service -StartupType Disabled -Force -ErrorAction Stop
+            Write-Host "Service '$service' stopped and disabled." -ForegroundColor Green
+        } catch {
+            Write-Host "Warning: Could not stop or disable service '$service'. Error: $_" -ForegroundColor Yellow
+        }
+    }
+    Read-Host -Prompt "Services Finished! Press enter to continue." -ForegroundColor Green
+} else if ($servicesChoice -eq "N") {
+    Write-Host "Not disabling services." -ForegroundColor Yellow
+} else if ($servicesChoice -eq "n") {
+    Write-Host "Not disabling services." -ForegroundColor Yellow
+} else {
+    Write-Host "Unable to determine chouice, not disabling services." -ForegroundColor Red
 }
-catch {
-Write-Host "Warning: Could not stop or disable service '$service'. Error: $_" -ForegroundColor Yellow
-}
-}
-Read-Host -Prompt "Services Finished! Press enter to continue." -ForegroundColor Green
 
 # --- Local Security Policy ---
 Write-Host "Configuring local security policy..."
@@ -131,21 +158,56 @@ Out-File "$LogPath\SuspectFiles.html"
 Read-Host -Prompt "HTML file created in ScriptLogs Folder. Press enter to continue"
 
 # --- Application Updates ---
-Write-Host "Starting Google Chrome update..."
-$ChromeUpdaterPath = "$LogPath\chrome_installer.exe"
-try {
-Invoke-WebRequest "http://dl.google.com/chrome/install/latest/chrome_installer.exe" -OutFile $ChromeUpdaterPath -ErrorAction Stop
-Start-Process -FilePath $ChromeUpdaterPath -Args "/silent /install" -Wait -ErrorAction Stop
-Remove-Item -Path $ChromeUpdaterPath -Force
-Write-Host "Google Chrome updated successfully." -ForegroundColor Green
-}
-catch {
-Write-Host "Error updating Google Chrome: $_" -ForegroundColor Red
+$cromeUpdateChoice = Read-Host -Prompt "Would you like to update Google Chrome? Y/N"
+if ($cromeUpdateChoice -eq "Y") {
+    Write-Host "Starting Google Chrome update..."
+    $ChromeUpdaterPath = "$LogPath\chrome_installer.exe"
+    try {
+        Invoke-WebRequest "http://dl.google.com/chrome/install/latest/chrome_installer.exe" -OutFile $ChromeUpdaterPath -ErrorAction Stop
+        Start-Process -FilePath $ChromeUpdaterPath -Args "/silent /install" -Wait -ErrorAction Stop
+        Remove-Item -Path $ChromeUpdaterPath -Force
+        Write-Host "Google Chrome updated successfully." -ForegroundColor Green
+    }
+    catch {
+       Write-Host "Error updating Google Chrome: $_" -ForegroundColor Red
+    }
+} else if ($cromeUpdateChoice -eq "y") {
+    if ($cromeUpdateChoice -eq "Y") {
+    Write-Host "Starting Google Chrome update..."
+    $ChromeUpdaterPath = "$LogPath\chrome_installer.exe"
+    try {
+        Invoke-WebRequest "http://dl.google.com/chrome/install/latest/chrome_installer.exe" -OutFile $ChromeUpdaterPath -ErrorAction Stop
+        Start-Process -FilePath $ChromeUpdaterPath -Args "/silent /install" -Wait -ErrorAction Stop
+        Remove-Item -Path $ChromeUpdaterPath -Force
+        Write-Host "Google Chrome updated successfully." -ForegroundColor Green
+    }
+    catch {
+       Write-Host "Error updating Google Chrome: $_" -ForegroundColor Red
+    }
+} else if ($cromeUpdateChoice -eq "N") {
+    Write-Host "Skipping Google Chrome update." -ForegroundColor Yellow
+} else if ($cromeUpdateChoice -eq "n") {
+    Write-Host "Skipping Google Chrome update." -ForegroundColor Yellow
+} else {
+    Write-Host "Unable to determine choice, skipping Google Chrome update." -ForegroundColor Red
 }
 
 # --- Microsoft Updates ---
-Write-Host "Starting Windows Updates. Please proceed with updates manually in the next window." -ForegroundColor Yellow
-control /name Microsoft.WindowsUpdate
-Read-Host -Prompt "Press enter to continue." -ForegroundColor Yellow
+$windowsUpdateChoice = Read-Host -Prompt "Would you like to start Windows Updates? Y/N"
+if ($windowsUpdateChoice -eq "Y") {
+    Write-Host "Starting Windows Updates. Please proceed with updates manually in the next window." -ForegroundColor Yellow
+    control /name Microsoft.WindowsUpdate
+    Read-Host -Prompt "Press enter to continue." -ForegroundColor Yellow
+} else if ($windowsUpdateChoice -eq "y") {
+    Write-Host "Starting Windows Updates. Please proceed with updates manually in the next window." -ForegroundColor Yellow
+    control /name Microsoft.WindowsUpdate
+    Read-Host -Prompt "Press enter to continue." -ForegroundColor Yellow
+} else if ($windowsUpdateChoice -eq "N") {
+    Write-Host "Skipping Windows Updates." -ForegroundColor Yellow
+} else if ($windowsUpdateChoice -eq "n") {
+    Write-Host "Skipping Windows Updates." -ForegroundColor Yellow
+} else {
+    Write-Host "Unable to determine choice, skipping Windows Updates." -ForegroundColor Red
+}
 
 Stop-Transcript
