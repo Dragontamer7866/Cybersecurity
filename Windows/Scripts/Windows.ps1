@@ -1,5 +1,10 @@
 # Requires -RunAsAdministrator
 
+<# THE FOLLOWING IS TO NOT BE USED AS IT IS UNTESTED!!! AS OF 10/23/2025 8:26 PM
+Start-Process -FilePath "wscript.exe" -ArgumentList "$PSScriptRoot\warning.vbs" -Wait
+#>
+#Start-Sleep -Seconds 10
+
 # --- Execution Policy Setup ---
 $Execution = Get-ExecutionPolicy
 if ($Execution -eq 'Restricted') {
