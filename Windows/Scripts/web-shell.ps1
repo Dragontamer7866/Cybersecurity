@@ -1,0 +1,1 @@
+Get-ChildItem -Path C:\ -Include *.php, *.asp, *.jsp, *.py, *.pl -File -Recurse
